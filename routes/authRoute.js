@@ -24,7 +24,7 @@ const {
 
 const router = express.Router();
 
-//USER ROUTES
+//USER AUTH ROUTES
 
 router.post("/signup", signupController);
 
@@ -36,7 +36,7 @@ router.post("/changePassword", authMiddleware, changePasswordController);
 
 router.post("/recoverPassword", authMiddleware, recoverPasswordController);
 
-//RESTAURANT ROUTES
+//RESTAURANT AUTH ROUTES
 
 router.post("/restaurant/register", restaurantRegisterController);
 
@@ -60,7 +60,7 @@ router.post(
   recoverRestaurantPasswordController
 );
 
-//DELIVERY BOY
+//DELIVERY BOY AUTH ROUTES
 
 router.post("/deliveryBoy/register", registerDeliveryBoyController);
 
@@ -83,4 +83,5 @@ router.post(
   authDeliveryMiddleware,
   recoverDeliveryBoyPasswordController
 );
+
 module.exports = router;

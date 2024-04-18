@@ -8,6 +8,7 @@ const DeliveryBoy = require("../model/deliveryBoyModel");
 
 const signupController = async (req, res) => {
   try {
+    // EXTRACTING THE USER DETAILS
     const { userName, email, password, address, recoveryQuestion, phone } =
       req.body;
 
@@ -26,8 +27,10 @@ const signupController = async (req, res) => {
       });
     }
 
+    // CHECKING WHETHER USER IS EXIST OR NOT
     const existingEmail = await User.findOne({ where: { email } });
 
+    //IF USER EXIST THEN RETURN PLEASE LOGIN
     if (existingEmail) {
       return res.status(400).send({
         success: false,
@@ -85,6 +88,7 @@ const signupController = async (req, res) => {
       recovery_question: recoveryQuestion,
     });
 
+    // ACCOUNT CREATED SUCCESSFULLY
     return res.status(201).send({
       success: true,
       message: "Account created successfully",
@@ -101,6 +105,7 @@ const signupController = async (req, res) => {
 
 const loginController = async (req, res) => {
   try {
+    // EXTRACTING THE USER INPUT FROM BODY
     const { email, password } = req.body;
 
     //REQUIRED BOTH FIELDS
@@ -133,6 +138,8 @@ const loginController = async (req, res) => {
           expiresIn: "7d",
         }
       );
+
+      // LOGIN SUCCESS
       return res.status(200).send({
         success: true,
         message: "successfully login",
@@ -156,10 +163,13 @@ const loginController = async (req, res) => {
 
 const userUpdateController = async (req, res) => {
   try {
+    // EXTRACTING THE USER INPUT FROM REQUEST BODY
     const { userName, profileUrl, phone, address, recoveryQuestion } = req.body;
 
+    // CHECK WHETHER THE USER IS EXIST OR NOT
     const user = await User.findByPk(req.user.userId);
 
+    //IF EXIST THEN UPDATE REQUIRED FIELDS
     if (userName) {
       await user.update({
         name: userName,
@@ -189,6 +199,7 @@ const userUpdateController = async (req, res) => {
       });
     }
 
+    // RETURN UPDATE SUCCESS
     return res.status(200).send({
       success: true,
       message: "user info",
@@ -205,8 +216,10 @@ const userUpdateController = async (req, res) => {
 
 const changePasswordController = async (req, res) => {
   try {
+    // CHECKING THE USER IS PRESENT OR NOT
     const user = await User.findByPk(req.user.userId);
 
+    // IF USER NOT EXIST THEN RETURN NOT FOUND
     if (!user) {
       return res.status(404).send({
         success: false,
@@ -214,8 +227,10 @@ const changePasswordController = async (req, res) => {
       });
     }
 
+    // EXTRACT THE NEW PASSWORD AND CONFROMATION PASSWORD
     const { newPassword, reEnteredNewPassword, oldPassword } = req.body;
 
+    //CHECK ALL FIELDS ARE PRESENT OR NOT
     if (!newPassword || !reEnteredNewPassword || !oldPassword) {
       return res.status(500).send({
         success: false,
@@ -251,6 +266,7 @@ const changePasswordController = async (req, res) => {
       password: hashedPassword,
     });
 
+    // RETURN THE PASSWORD UPDATED SUCCESSFULLY
     return res.status(200).send({
       success: true,
       message: "Password changed successfully",
@@ -266,8 +282,10 @@ const changePasswordController = async (req, res) => {
 
 const recoverPasswordController = async (req, res) => {
   try {
+    // FIND THE USER IN THE USER TABLE
     const user = await User.findByPk(req.user.userId);
 
+    // IF NOT EXIST THEN RETURN 404
     if (!user) {
       return res.status(404).send({
         success: false,
@@ -275,8 +293,10 @@ const recoverPasswordController = async (req, res) => {
       });
     }
 
+    //EXTRACT THE NEW AND CONFORMATION PASSWORD
     const { recoveryQuestion, newPassword, reEnteredNewPassword } = req.body;
 
+    //IF REQUIRED FIRLDS THEN RETURN
     if (!recoveryQuestion || !newPassword || !reEnteredNewPassword) {
       return res.status(500).send({
         success: false,
@@ -284,8 +304,10 @@ const recoverPasswordController = async (req, res) => {
       });
     }
 
+    // CHECK THE NEW AND CONFORMATION PASSWORD ARE SAME OR NOT
     const newPasswordMatched = newPassword == reEnteredNewPassword;
 
+    // IF NOT SAME THEN RETURN
     if (!newPasswordMatched) {
       return res.status(500).send({
         success: false,
@@ -293,8 +315,10 @@ const recoverPasswordController = async (req, res) => {
       });
     }
 
+    // COMPARE THE RECOVERY QUESTION FROM USER TABLE AND USER INPUT
     const recoveryQuestionMatched = recoveryQuestion == user.recovery_question;
 
+    // IF RECOVERY QUESTION NOT MATCH THEN RETURN
     if (!recoveryQuestionMatched) {
       return res.status(500).send({
         success: false,
@@ -306,10 +330,12 @@ const recoverPasswordController = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = bcrypt.hashSync(newPassword, saltRounds);
 
+    // UPDATE THE PASSWORD WITH NEW PASSWORD
     await user.update({
       password: hashedPassword,
     });
 
+    // RETURN THE PASSWORD UPDATED SUCCESS
     return res.status(200).send({
       success: true,
       message: "Password changed successfully",
@@ -327,6 +353,7 @@ const recoverPasswordController = async (req, res) => {
 
 const restaurantRegisterController = async (req, res) => {
   try {
+    // EXTRACT ALL FIELDS
     const {
       rName,
       rEmail,
@@ -338,10 +365,12 @@ const restaurantRegisterController = async (req, res) => {
       rRecoveryQuestion,
     } = req.body;
 
+    // CHECK THE RESTAURANT IS EXIST OR NOT
     const restaurantExist = await Restaurant.findOne({
       where: { email: rEmail },
     });
 
+    // CHECK ALL FIELDS ARE PRESENT OR NOT
     if (
       (!rName || !rEmail || !rPassword || !rAddress,
       !rPhone,
@@ -353,6 +382,7 @@ const restaurantRegisterController = async (req, res) => {
       });
     }
 
+    // IF RESTAURANT FOUND THEN RETURN
     if (restaurantExist) {
       return res.status(500).send({
         success: false,
@@ -400,6 +430,7 @@ const restaurantRegisterController = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = bcrypt.hashSync(rPassword, saltRounds);
 
+    // CREATE THE NEW RESTAURANT IN THE DATABSE TABLE
     const newRestaurant = Restaurant.create({
       name: rName,
       email: rEmail,
@@ -411,9 +442,10 @@ const restaurantRegisterController = async (req, res) => {
       recovery_question: rRecoveryQuestion,
     });
 
-    //hiding the password
+    //HIDE PASSWORD
     newRestaurant.password = undefined;
 
+    // RETURN RESTAURANT ACCOUNT CREATED
     return res.status(200).send({
       success: true,
       message: "successfully created..",
@@ -430,6 +462,7 @@ const restaurantRegisterController = async (req, res) => {
 
 const restaurantLoginController = async (req, res) => {
   try {
+    // EXTRACT THE INPUT FIELDS
     const { rEmail, rPassword } = req.body;
 
     //REQUIRED BOTH FIELDS
@@ -468,6 +501,8 @@ const restaurantLoginController = async (req, res) => {
           expiresIn: "7d",
         }
       );
+
+      // RETURN LOGIN SUCCESSFULL WITH THE TOKEN
       return res.status(200).send({
         success: true,
         message: "successfully login",
@@ -485,78 +520,6 @@ const restaurantLoginController = async (req, res) => {
     return res.status(500).send({
       success: false,
       message: "Error occurred while logging to your account",
-    });
-  }
-};
-
-const updateRestaurantProfileController = async (req, res) => {
-  try {
-    const {
-      rName,
-      rPhone,
-      rProfileUrl,
-      rCoverUrl,
-      rRecoveryQuestion,
-      rAddress,
-    } = req.body;
-
-    const restaurantExist = await Restaurant.findByPk(
-      req.restaurant.restaurantId
-    );
-
-    //Checking the restaurant in DB
-    if (!restaurantExist) {
-      return res.status(404).send({
-        success: false,
-        message: "restaurant not found in update restaurant",
-      });
-    }
-
-    if (rName) {
-      await restaurantExist.update({
-        name: rName,
-      });
-    }
-
-    if (rPhone) {
-      await restaurantExist.update({
-        phone: rPhone,
-      });
-    }
-
-    if (rAddress) {
-      await restaurantExist.update({
-        address: rAddress,
-      });
-    }
-
-    if (rRecoveryQuestion) {
-      await restaurantExist.update({
-        recovery_question: rRecoveryQuestion,
-      });
-    }
-
-    if (rProfileUrl) {
-      await restaurantExist.update({
-        profile_url: rProfileUrl,
-      });
-    }
-
-    if (rCoverUrl) {
-      await restaurantExist.update({
-        cover_url: rCoverUrl,
-      });
-    }
-
-    return res.status(200).send({
-      success: true,
-      message: "successfully updated",
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send({
-      success: false,
-      message: "Error at the update restaurant api",
     });
   }
 };

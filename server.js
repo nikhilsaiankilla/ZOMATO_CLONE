@@ -22,6 +22,8 @@ app.use("/v1/api/auth", require("./routes/authRoute"));
 
 app.use("/v1/api/user", require("./routes/userRoute"));
 
+app.use("/v1/api/restaurants", require("./routes/restaurantRoute"));
+
 app.get("/", (req, res) => {
   res.send({
     success: true,
